@@ -54,6 +54,18 @@ private:
     void recurDfs(T const &vertex, std::vector<bool> visited);
 
     /*!
+     * @brief Pushes visited vertex into queue and updates visited list
+     * @param[in] vertex: Vertex visited
+     * @param[in] queue: Queue used for Breadth First Search tracking.
+     * @param[in] visited: Vector to keep track of which vertices have been visited
+     * @param[in] idx_for_vertex: Index for the vertex visited (in map/visited vector)
+     */
+    void handleBfsVertexVisit(T                 const  &vertex,
+                              std::list<T>             &queue,
+                              std::vector<bool>        &visited,
+                              std::size_t       const  &idx_for_vertex);
+
+    /*!
      * @brief Creates a vector to keep track of visited vertices
      * @return Vector of size equal to number of vertices with all entries set to false
      */
@@ -111,24 +123,20 @@ template <typename T>
 void Graph<T>::executeBfs(T const &vertex)
 {
     auto visited = createVisitedTracker();
-    visited.at(getMapIndex(m_adj_list_map, vertex)) = true;
-
-    std::list<T> queue{vertex}; // Create a queue to keep track of vertices explored and initialize it with the input
-                                // vertex
+    std::list<T> queue; // Create a queue to keep track of vertices explored
+    handleBfsVertexVisit(vertex, queue, visited, getMapIndex(m_adj_list_map, vertex));
 
      while (!queue.empty())
      {
          auto l_vertex = queue.front(); // local vertex (potentially different from input argument vertex)
          queue.pop_front();
-         std::cout << "Visited vertex " << l_vertex << std::endl;
          auto &l_adj_list_at_l_vertex = m_adj_list_map[l_vertex];
          for (auto it = l_adj_list_at_l_vertex.cbegin(); it != l_adj_list_at_l_vertex.cend(); ++it)
          {
              auto idx_for_l_vertex = getMapIndex(m_adj_list_map, *it); // it: iterator to a vertex in the adjacency list
              if (!visited.at(idx_for_l_vertex))
              {
-                 visited.at(idx_for_l_vertex) = true;
-                 queue.push_back(*it);
+                 handleBfsVertexVisit(*it, queue, visited, idx_for_l_vertex);
              }
          }
      }
@@ -150,13 +158,23 @@ void Graph<T>::recurDfs(T const &vertex, std::vector<bool> visited )
     }
 }
 
+template <typename T>
+void Graph<T>::handleBfsVertexVisit(T                 const  &vertex,
+                                    std::list<T>             &queue,
+                                    std::vector<bool>        &visited,
+                                    std::size_t       const  &idx_for_vertex)
+{
+    visited.at(idx_for_vertex) = true;
+    std::cout << "Visited vertex " << vertex << std::endl;
+    queue.push_back(vertex);
+}
+
 template<typename T>
 std::vector<bool> Graph<T>::createVisitedTracker()
 {
-    std::vector<bool> visited; // flag to indicate visited status for each vertex. Index here is the same as the index
-                               // in the map.
-    visited.resize(m_adj_list_map.size());
-    std::fill(visited.begin(), visited.end(), false); // no vertex has been visited to begin with
+    std::vector<bool> visited (m_adj_list_map.size(), false); // flag to indicate visited status for each
+                                                                       // vertex. Index here is the same as the index
+                                                                       // in the map.
     return visited; // Return value optimization will ensure that std::move is used
 }
 

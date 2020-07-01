@@ -29,10 +29,16 @@ public:
     void addEdge(T const& vertex, T const& adj_vertex);
 
     /*!
-     * @brief Explores vertices using Depth First Search starting from the input vertex
+     * @brief Explores vertices using Depth First Search starting from the input vertex, when the graph is connected.
      * @param vertex
      */
     void executeDfs(T const &vertex);
+
+    /*!
+     * @brief Explores vertices using Depth First Search when the graph is disconnected
+     */
+    void executeDfs();
+
 
 private:
     /*!
@@ -75,9 +81,10 @@ void Graph<T>::DfsUtility(T const &vertex, std::vector<bool> &visited )
     visited[getMapIndex(m_adj_list_map, vertex)] = true;
     std::cout << "Visited vertex " << vertex << std::endl;
 
-    for (auto it = m_adj_list_map[vertex].begin(); it != m_adj_list_map[vertex].end(); ++it)
+    auto &m_adj_list_at_vertex = m_adj_list_map[vertex];
+    for (auto it = m_adj_list_at_vertex.begin(); it != m_adj_list_at_vertex.end(); ++it)
     {
-        if (!visited.at(getMapIndex(m_adj_list_map, *it)))
+        if (!visited.at(getMapIndex(m_adj_list_map, *it))) // it: iterator to a vertex in the adjacency list
         {
             DfsUtility(*it, visited);
         }
@@ -92,6 +99,23 @@ void Graph<T>::executeDfs(const T &vertex)
     visited.resize(m_adj_list_map.size());
     std::fill(visited.begin(), visited.end(), false); // no vertex has been visited to begin with
     DfsUtility(vertex, visited);
+}
+
+template <typename T>
+void Graph<T>::executeDfs()
+{
+    std::vector<bool> visited; // flag to indicate visited status for each vertex. Index here is the same as the index
+    // in the map.
+    visited.resize(m_adj_list_map.size());
+    std::fill(visited.begin(), visited.end(), false); // no vertex has been visited to begin with
+
+    for (auto it = m_adj_list_map.cbegin(); it != m_adj_list_map.cend(); ++it)
+    {
+        if (!visited.at(getMapIndex(m_adj_list_map, it->first))) // it: iterator to an std::pair<T, std::list>
+        {
+            DfsUtility(it->first, visited);
+        }
+    }
 }
 
 template<typename T>
@@ -133,6 +157,18 @@ void testDFS()
     g_float.addEdge(3.1, 3.1);
     std::cout << "Depth First Search traversal starting for float-based graph, from vertex 2.1 : " << std::endl;
     g_float.executeDfs(2.1);
+
+    Graph<int> g_int_disc;
+    g_int_disc.addEdge(0, 1);
+    g_int_disc.addEdge(0, 2);
+    g_int_disc.addEdge(1, 2);
+    g_int_disc.addEdge(2, 0);
+    g_int_disc.addEdge(2, 3);
+    g_int_disc.addEdge(3, 3);
+
+    std::cout << "Depth First Search traversal in an int-based disconnected graph" << std::endl;
+    g_int_disc.executeDfs();
+
 }
 
 #endif

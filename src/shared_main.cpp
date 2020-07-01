@@ -5,12 +5,12 @@
  */
 
 #include <iostream>
-#include "../include/dfs.hpp"
+#include "../include/breadth_depth_first_search.hpp"
 
 
 int main()
 {
-    testDFS();
+    testBdfs();
     return 0;
 }
 
